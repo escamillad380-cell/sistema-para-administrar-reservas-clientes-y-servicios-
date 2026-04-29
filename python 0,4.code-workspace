@@ -1,7 +1,198 @@
-{
-	"folders": [
-		{
-			"path": "../Fundamentos de Programación/python 0,4"
-		}
-	]
-}
+from abc import ABC, abstractmethod
+import datetime
+# -----------------------------
+Daniel escamilla 
+# -----------------------------
+# LOGS
+# -----------------------------
+def registrar_log(mensaje):
+    with open("logs.txt", "a") as archivo:
+        archivo.write(f"{datetime.datetime.now()} - {mensaje}\n")
+
+# -----------------------------
+# EXCEPCIONES
+# -----------------------------
+class ErrorCliente(Exception):
+    pass
+
+class ErrorServicio(Exception):
+    pass
+
+class ErrorReserva(Exception):
+    pass
+
+# -----------------------------
+# CLASE ABSTRACTA
+# -----------------------------
+class Entidad(ABC):
+    @abstractmethod
+    def mostrar_info(self):
+        pass
+
+# -----------------------------
+# CLIENTE
+# -----------------------------
+class Cliente(Entidad):
+    def __init__(self, nombre, documento):
+        if not nombre:
+            raise ErrorCliente("Nombre no puede estar vacío")
+        if not documento:
+            raise ErrorCliente("Documento inválido")
+
+        self.__nombre = nombre
+        self.__documento = documento
+
+    def mostrar_info(self):
+        return f"{self.__nombre} - {self.__documento}"
+
+# -----------------------------
+# SERVICIO ABSTRACTO
+# -----------------------------
+class Servicio(ABC):
+    def __init__(self, nombre):
+        self.nombre = nombre
+
+    @abstractmethod
+    def calcular_costo(self, duracion):
+        pass
+
+    @abstractmethod
+    def descripcion(self):
+        pass
+
+# -----------------------------
+# SERVICIOS
+# -----------------------------
+class ReservaSala(Servicio):
+    def calcular_costo(self, horas):
+        if horas <= 0:
+            raise ErrorServicio("Horas inválidas")
+        return horas * 50
+
+    def descripcion(self):
+        return "Sala"
+
+class AlquilerEquipo(Servicio):
+    def calcular_costo(self, dias):
+        if dias <= 0:
+            raise ErrorServicio("Días inválidos")
+        return dias * 30
+
+    def descripcion(self):
+        return "Equipo"
+
+class Asesoria(Servicio):
+    def calcular_costo(self, horas):
+        if horas <= 0:
+            raise ErrorServicio("Horas inválidas")
+        return horas * 100
+
+    def descripcion(self):
+        return "Asesoría"
+
+# -----------------------------
+# RESERVA
+# -----------------------------
+class Reserva:
+    def __init__(self, cliente, servicio, duracion):
+        self.cliente = cliente
+        self.servicio = servicio
+        self.duracion = duracion
+        self.estado = "Pendiente"
+
+    def confirmar(self):
+        try:
+            costo = self.servicio.calcular_costo(self.duracion)
+            self.estado = "Confirmada"
+            return costo
+        except Exception as e:
+            registrar_log(f"Error en reserva: {e}")
+            raise ErrorReserva("Error al confirmar reserva")
+
+    def mostrar(self):
+        return f"{self.cliente.mostrar_info()} | {self.servicio.descripcion()} | {self.estado}"
+
+# -----------------------------
+# MENÚ PRINCIPAL
+# -----------------------------
+clientes = []
+reservas = []
+
+def menu():
+    while True:
+        print("\n--- SISTEMA DE RESERVAS ---")
+        print("1. Registrar cliente")
+        print("2. Crear reserva")
+        print("3. Ver reservas")
+        print("4. Salir")
+
+        opcion = input("Seleccione una opción: ")
+
+        if opcion == "1":
+            try:
+                nombre = input("Nombre: ")
+                documento = input("Documento: ")
+                cliente = Cliente(nombre, documento)
+                clientes.append(cliente)
+                print("Cliente registrado correctamente")
+            except Exception as e:
+                registrar_log(f"Error cliente: {e}")
+                print("Error:", e)
+
+        elif opcion == "2":
+            try:
+                if not clientes:
+                    print("No hay clientes registrados")
+                    continue
+
+                print("\nClientes:")
+                for i, c in enumerate(clientes):
+                    print(i, c.mostrar_info())
+
+                indice = int(input("Seleccione cliente: "))
+                cliente = clientes[indice]
+
+                print("\nServicios:")
+                print("1. Sala")
+                print("2. Equipo")
+                print("3. Asesoría")
+
+                tipo = input("Seleccione servicio: ")
+
+                if tipo == "1":
+                    servicio = ReservaSala("Sala")
+                elif tipo == "2":
+                    servicio = AlquilerEquipo("Equipo")
+                elif tipo == "3":
+                    servicio = Asesoria("Asesoría")
+                else:
+                    raise ErrorServicio("Servicio inválido")
+
+                duracion = int(input("Duración: "))
+
+                reserva = Reserva(cliente, servicio, duracion)
+                costo = reserva.confirmar()
+                reservas.append(reserva)
+
+                print("Reserva creada. Costo:", costo)
+
+            except Exception as e:
+                registrar_log(f"Error reserva: {e}")
+                print("Error:", e)
+
+        elif opcion == "3":
+            for r in reservas:
+                print(r.mostrar())
+
+        elif opcion == "4":
+            print("Saliendo del sistema...")
+            break
+
+        else:
+            print("Opción inválida")
+
+# -----------------------------
+# EJECUCIÓN
+# -----------------------------
+if __name__ == "__main__":
+    menu()
