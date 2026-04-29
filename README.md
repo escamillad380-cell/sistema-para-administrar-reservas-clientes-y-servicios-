@@ -21,4 +21,4 @@ Crear una aplicación sólida utilizando los principios de encapsulación, heren
 - Daniel Mauricio Escamilla Bareño 
 
 ## Repositorio
-https://github.com/escamillad380-cell/sistema-para-administrar-reservas-clientes-y-servicios-/edit/main/README.md
+https://github.com/escamillad380-cell/sistema-para-administrar-reservas-clientes-y-servicios-.git
